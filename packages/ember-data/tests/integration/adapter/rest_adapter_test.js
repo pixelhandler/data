@@ -33,11 +33,14 @@ module("integration/adapter/rest_adapter - REST Adapter", {
 
 function ajaxResponse(value) {
   adapter.ajax = function(url, verb, hash) {
-    passedUrl = url;
-    passedVerb = verb;
-    passedHash = hash;
-
-    return Ember.RSVP.resolve(value);
+    return new Ember.RSVP.Promise(function(resolve) {
+      Ember.run.next(function() {
+        passedUrl = url;
+        passedVerb = verb;
+        passedHash = hash;
+        resolve(value);
+      });
+    });
   };
 }
 
