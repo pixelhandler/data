@@ -96,6 +96,49 @@ test("extractSingle with embedded objects", function() {
   }));
 });
 
+test("extractSingle with embedded objects inside sideloaded objects", function() {
+  env.container.register('adapter:superVillain', DS.ActiveModelAdapter);
+  env.container.register('serializer:homePlanet', DS.ActiveModelSerializer.extend());
+  env.container.register('serializer:superVillain', DS.ActiveModelSerializer.extend(DS.EmbeddedRecordsMixin, {
+    attrs: {
+      evilMinions: {embedded: 'always'}
+    }
+  }));
+
+  var serializer = env.container.lookup("serializer:homePlanet");
+  var json_hash = {
+    home_planet: {
+      id: "1",
+      name: "Umber",
+      villain_ids: ["1"]
+    },
+    super_villains: [{
+      id: "1",
+      first_name: "Tom",
+      last_name: "Dale",
+      home_planet_id: "1",
+      evil_minions: [{
+        id: "1",
+        name: "Alex"
+      }]
+    }]
+  };
+
+  var json = serializer.extractSingle(env.store, HomePlanet, json_hash);
+
+  deepEqual(json, {
+    id: "1",
+    name: "Umber",
+    villains: ["1"]
+  });
+  env.store.find("superVillain", 1).then(async(function(villain) {
+    equal(villain.get('firstName'), "Tom");
+    equal(villain.get('evilMinions.length'), 1, "Should load the embedded child");
+    equal(villain.get('evilMinions.firstObject.name'), "Alex", "Should load the embedded child");
+  }));
+
+});
+
 test("extractSingle with embedded objects inside embedded objects", function() {
   env.container.register('adapter:superVillain', DS.ActiveModelAdapter);
   env.container.register('serializer:homePlanet', DS.ActiveModelSerializer.extend(DS.EmbeddedRecordsMixin, {
