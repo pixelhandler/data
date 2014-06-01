@@ -349,6 +349,7 @@ var EmbeddedRecordsMixin = Ember.Mixin.create({
     var key = primaryType.typeKey;
     var root = getKeyForAttribute.call(this, key);
     var partial = payload[root];
+    payload = normalizePayload.call(this, payload);
 
     updatePayloadWithEmbedded(this, store, primaryType, payload, partial);
 
@@ -409,6 +410,7 @@ var EmbeddedRecordsMixin = Ember.Mixin.create({
     var key = primaryType.typeKey;
     var root = getKeyForAttribute.call(this, key);
     var partials = payload[pluralize(root)];
+    payload = normalizePayload.call(this, payload);
 
     forEach(partials, function(partial) {
       updatePayloadWithEmbedded(this, store, primaryType, payload, partial);
@@ -421,6 +423,12 @@ var EmbeddedRecordsMixin = Ember.Mixin.create({
 // `keyForAttribute` is optional but may be defined when extending a serializer prototype
 var getKeyForAttribute = function(attr) {
  return (this.keyForAttribute) ? this.keyForAttribute(attr) : attr;
+};
+
+// Check if method `normalizePayload` exists to support extending a serializer that
+// does not extend the RESTSerializer prototype
+var normalizePayload = function(payload) {
+ return (this.normalizePayload) ? this.normalizePayload(payload) : payload;
 };
 
 // checks config for attrs option to embedded (always) - serialize and deserialize
