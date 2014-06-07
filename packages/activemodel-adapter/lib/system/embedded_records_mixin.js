@@ -407,12 +407,15 @@ var EmbeddedRecordsMixin = Ember.Mixin.create({
       to the original query.
   */
   extractArray: function(store, primaryType, payload) {
-    var root = this.keyForAttribute(primaryType.typeKey),
-        partials = payload[pluralize(root)];
-
-    forEach(partials, function(partial) {
+    var root = this.keyForAttribute(primaryType.typeKey);
+    var partials = payload[pluralize(root)];
+    debugger;
+    var extractPartial = function(partial) {
       updatePayloadWithEmbedded(this, store, primaryType, payload, partial);
-    }, this);
+    };
+    for (var prop in payload) {
+      forEach(partials, extractPartial, this);
+    }
 
     return this._super(store, primaryType, payload);
   },

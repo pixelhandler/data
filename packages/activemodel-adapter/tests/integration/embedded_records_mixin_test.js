@@ -96,7 +96,7 @@ test("extractSingle with embedded objects", function() {
   }));
 });
 
-test("extractSingle with embedded objects inside sideloaded objects", function() {
+test("extractSingle with embedded objects inside side-loaded data", function() {
   env.container.register('adapter:superVillain', DS.ActiveModelAdapter);
   env.container.register('serializer:homePlanet', DS.ActiveModelSerializer.extend());
   env.container.register('serializer:superVillain', DS.ActiveModelSerializer.extend(DS.EmbeddedRecordsMixin, {
@@ -354,6 +354,52 @@ test("extractArray with embedded objects", function() {
   }));
 });
 
+test("extractArray with embedded objects in side-loaded data", function() {
+  expect(4);
+  env.container.register('serializer:secretLab', DS.ActiveModelSerializer);
+  env.container.register('serializer:superVillain', DS.ActiveModelSerializer.extend(DS.EmbeddedRecordsMixin, {
+    attrs: {
+      secretWeapons: {embedded: 'always'},
+      homePlanet: {embedded: 'always'}
+    }
+  }));
+  var serializer = env.container.lookup("serializer:secretLab");
+  serializer.extractArray(env.store, SecretLab, {
+    secret_lab: [{
+      id: '1',
+      minion_capacity: 0,
+      vicinity: 'New York',
+      super_villain: ['2']
+    }],
+    super_villains: [{
+      id: '2',
+      first_name: 'Lex',
+      last_name: 'Luthor',
+      secret_lab: '1',
+      secret_weapons: [{
+        id: '3',
+        name: 'superior intellect and utter ruthlessness'
+      }],
+      home_planet: {
+        id: '4',
+        name: 'Earth',
+        villain_ids: ['2']
+      },
+      evil_minions: []
+    }]
+  });
+
+  secretLab = env.store.getById('secretLab', '1');
+  superVillain = env.store.getById('superVillain', '2');
+  secretWeapon = env.store.getById('secretWeapon', '3');
+  homePlanet = env.store.getById('homePlanet', '4');
+
+  ok(secretLab && secretLab.get('vicinity'));
+  ok(superVillain && superVillain.get('firstName'));
+  ok(secretWeapon && secretWeapon.get('name'));
+  ok(homePlanet && homePlanet.get('name'));
+});
+
 test("extractArray with embedded objects of same type as primary type", function() {
   env.container.register('adapter:comment', DS.ActiveModelAdapter);
   env.container.register('serializer:comment', DS.ActiveModelSerializer.extend(DS.EmbeddedRecordsMixin, {
@@ -468,7 +514,7 @@ test("extractArray with embedded objects of same type, but from separate attribu
   equal(env.store.recordForId("superVillain", "6").get("firstName"), "Trek", "Secondary records found in the store");
 });
 
-test("extract payload with embedded objects in side-loaded data", function() {
+test("pushPayload with embedded objects in side-loaded data", function() {
   expect(4);
   env.container.register('serializer:secretLab', DS.ActiveModelSerializer);
   env.container.register('serializer:superVillain', DS.ActiveModelSerializer.extend(DS.EmbeddedRecordsMixin, {
