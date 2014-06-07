@@ -348,10 +348,22 @@ var EmbeddedRecordsMixin = Ember.Mixin.create({
     @return Object the primary response to the original request
   */
   extractSingle: function(store, primaryType, payload, recordId) {
-    var root = this.keyForAttribute(primaryType.typeKey),
-        partial = payload[root];
+    var root = this.keyForAttribute(primaryType.typeKey);
+    var partial = payload[root];
+    var key, typeName, type, typeSerializer;
 
-    updatePayloadWithEmbedded(this, store, primaryType, payload, partial);
+    for (var prop in payload) {
+      if (prop === root) {
+        updatePayloadWithEmbedded(this, store, primaryType, payload, partial);
+      } else {
+        key = this.keyForAttribute(prop);
+        // TODO figure out how to extract side loaded, lookup model for key, lookup serializer, check attrs?
+        debugger;
+        typeName = this.typeForRoot(prop);
+        type = store.modelFor(typeName);
+        typeSerializer = store.serializerFor(type);
+      }
+    }
 
     return this._super(store, primaryType, payload, recordId);
   },
@@ -409,12 +421,22 @@ var EmbeddedRecordsMixin = Ember.Mixin.create({
   extractArray: function(store, primaryType, payload) {
     var root = this.keyForAttribute(primaryType.typeKey);
     var partials = payload[pluralize(root)];
-    debugger;
+    var key, typeName, type, typeSerializer;
+
     var extractPartial = function(partial) {
       updatePayloadWithEmbedded(this, store, primaryType, payload, partial);
     };
     for (var prop in payload) {
-      forEach(partials, extractPartial, this);
+      if (prop === root) {
+        forEach(partials, extractPartial, this);
+      } else {
+        key = this.keyForAttribute(prop);
+        // TODO figure out how to extract side loaded, lookup model for key, lookup serializer, check attrs?
+        debugger;
+        typeName = this.typeForRoot(prop);
+        type = store.modelFor(typeName);
+        typeSerializer = store.serializerFor(type);
+      }
     }
 
     return this._super(store, primaryType, payload);

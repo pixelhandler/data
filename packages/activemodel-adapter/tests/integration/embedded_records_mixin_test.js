@@ -98,7 +98,11 @@ test("extractSingle with embedded objects", function() {
 
 test("extractSingle with embedded objects inside side-loaded data", function() {
   env.container.register('adapter:superVillain', DS.ActiveModelAdapter);
-  env.container.register('serializer:homePlanet', DS.ActiveModelSerializer.extend());
+  env.container.register('serializer:homePlanet', DS.ActiveModelSerializer.extend(DS.EmbeddedRecordsMixin, {
+    attrs: {
+      villains: {serialize: 'ids'}
+    }
+  }));
   env.container.register('serializer:superVillain', DS.ActiveModelSerializer.extend(DS.EmbeddedRecordsMixin, {
     attrs: {
       evilMinions: {embedded: 'always'}
